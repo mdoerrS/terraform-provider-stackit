@@ -13,10 +13,10 @@ VPC region configuration resource schema.
 ## Example Usage
 
 ```terraform
-data "stackit_vpc_region" "example" {
-  project_id            = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  vpc_id                = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  region                = "eu01"
+resource "stackit_vpc_region" "example" {
+  project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  vpc_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  region     = "eu01"
 
   default_routing_table = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   ipv4 = {

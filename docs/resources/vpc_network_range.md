@@ -13,10 +13,10 @@ VPC Network Range resource schema.
 ## Example Usage
 
 ```terraform
-data "stackit_vpc_network_range" "example" {
-  project_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  vpc_id      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  region      = "eu01"
+resource "stackit_vpc_network_range" "example" {
+  project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  vpc_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  region     = "eu01"
 
   ipv4 = {
     description = "Example description"
@@ -41,20 +41,18 @@ data "stackit_vpc_network_range" "example" {
 
 ### Required
 
+- `ipv4` (Attributes) The regional IPv4 config of a network range. (see [below for nested schema](#nestedatt--ipv4))
 - `project_id` (String) STACKIT project ID to which the network range is associated.
 - `vpc_id` (String) The VPC ID.
 
 ### Optional
 
-- `ipv4` (Attributes) The regional IPv4 config of a network range. (see [below for nested schema](#nestedatt--ipv4))
 - `region` (String) The resource region. If not defined, the provider region is used.
 
 ### Read-Only
 
-- `created_at` (String) Date-time when the network range was created
 - `id` (String) Terraform's internal resource ID. It is structured as "`project_id`,`vpc_id`,`region`,`network_range_id`".
 - `network_range_id` (String) The network range ID
-- `updated_at` (String) Date-time when the network range was updated
 
 <a id="nestedatt--ipv4"></a>
 ### Nested Schema for `ipv4`

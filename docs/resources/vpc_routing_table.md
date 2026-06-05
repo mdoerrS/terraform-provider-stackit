@@ -13,7 +13,7 @@ Routing table resource schema.
 ## Example Usage
 
 ```terraform
-data "stackit_vpc_routing_table" "example" {
+resource "stackit_vpc_routing_table" "example" {
   project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   vpc_id     = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   region     = "eu01"
@@ -47,7 +47,5 @@ data "stackit_vpc_routing_table" "example" {
 
 ### Read-Only
 
-- `created_at` (String) Date-time when the routing table was created
 - `id` (String) Terraform's internal resource ID. It is structured as "`project_id`,`vpc_id`,`region`,`routing_table_id`".
 - `routing_table_id` (String) The routing tables ID.
-- `updated_at` (String) Date-time when the routing table was updated

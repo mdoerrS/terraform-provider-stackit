@@ -13,8 +13,8 @@ VPC resource schema.
 ## Example Usage
 
 ```terraform
-data "stackit_vpc" "example_vpc" {
-  project_id  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+resource "stackit_vpc" "example_vpc" {
+  project_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
   name        = "example"
   description = "Example description"
@@ -39,8 +39,6 @@ data "stackit_vpc" "example_vpc" {
 
 ### Read-Only
 
-- `created_at` (String) Date-time when the VPC was created
 - `id` (String) Terraform's internal resource identifier. It is structured as "`project_id`,`vpc_id`".
 - `shared` (Boolean) Indicates if a VPC can be shared.
-- `updated_at` (String) Date-time when the VPC was updated
 - `vpc_id` (String) The VPC ID.

@@ -32,8 +32,6 @@ type Model struct {
 	Labels      types.Map    `tfsdk:"labels"`
 	Name        types.String `tfsdk:"name"`
 	Shared      types.Bool   `tfsdk:"shared"`
-	CreatedAt   types.String `tfsdk:"created_at"`
-	UpdatedAt   types.String `tfsdk:"updated_at"`
 }
 
 // NewVpcResource is a helper function to simplify the provider implementation.
@@ -44,7 +42,6 @@ func NewVpcResource() resource.Resource {
 // vpcResource is the resource implementation.
 type vpcResource struct {
 	// client                *iaas.APIClient
-	// resourceManagerClient *resourcemanager.APIClient
 }
 
 // Metadata returns the resource type name.
@@ -105,16 +102,8 @@ func (r *vpcResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					stringvalidator.LengthAtMost(127),
 				},
 			},
-			"shared": schema.BoolAttribute{ //XXX: This field can only be modified via separate endpoints
+			"shared": schema.BoolAttribute{
 				Description: "Indicates if a VPC can be shared.",
-				Computed:    true,
-			},
-			"created_at": schema.StringAttribute{
-				Description: "Date-time when the VPC was created",
-				Computed:    true,
-			},
-			"updated_at": schema.StringAttribute{
-				Description: "Date-time when the VPC was updated",
 				Computed:    true,
 			},
 		},

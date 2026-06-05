@@ -32,9 +32,6 @@ type Model struct {
 	Labels        types.Map    `tfsdk:"labels"`
 	DynamicRoutes types.Bool   `tfsdk:"dynamic_routes"`
 	SystemRoutes  types.Bool   `tfsdk:"system_routes"`
-
-	CreatedAt types.String `tfsdk:"created_at"`
-	UpdatedAt types.String `tfsdk:"updated_at"`
 }
 
 // NewVpcRoutingTable is a helper function to simplify the provider implementation.
@@ -67,7 +64,7 @@ func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaReq
 			},
 			"region": schema.StringAttribute{
 				Description: "The resource region. If not defined, the provider region is used.",
-				Optional:    true, // XXX: or can/should this be required?
+				Optional:    true,
 				// must be computed to allow for storing the override value from the provider
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
@@ -136,18 +133,10 @@ func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaReq
 				Default:     booldefault.StaticBool(true),
 			},
 			"system_routes": schema.BoolAttribute{
-				Description: "This allows installation of automatic system routes for connectivity between projects in the same VPC.", // TODO: is there a change in behavior in VPC?
+				Description: "This allows installation of automatic system routes for connectivity between projects in the same VPC.",
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),
-			},
-			"created_at": schema.StringAttribute{
-				Description: "Date-time when the routing table was created",
-				Computed:    true,
-			},
-			"updated_at": schema.StringAttribute{
-				Description: "Date-time when the routing table was updated",
-				Computed:    true,
 			},
 		},
 	}

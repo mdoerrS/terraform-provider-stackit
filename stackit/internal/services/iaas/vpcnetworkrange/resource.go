@@ -33,9 +33,6 @@ type Model struct {
 	NetworkRangeId types.String `tfsdk:"network_range_id"`
 
 	Ipv4 *ipv4Model `tfsdk:"ipv4"`
-	// Ipv6 *ipv6Model `tfsdk:"ipv6"` // XXX: Ipv6 will be available in the future
-	CreatedAt types.String `tfsdk:"created_at"`
-	UpdatedAt types.String `tfsdk:"updated_at"`
 }
 
 type ipv4Model struct {
@@ -47,17 +44,6 @@ type ipv4Model struct {
 	Description         types.String `tfsdk:"description"`
 	Labels              types.Map    `tfsdk:"labels"`
 }
-
-// XXX: Ipv6 will be available in the future
-// type ipv6Model struct {
-// DefaultPrefixLength types.Int64  `tfsdk:"default_prefix_length"`
-// MaxPrefixLength     types.Int64  `tfsdk:"max_prefix_length"`
-// MinPrefixLength     types.Int64  `tfsdk:"min_prefix_length"`
-// Nameservers         types.List   `tfsdk:"nameservers"`
-// Prefix              types.String `tfsdk:"prefix"`
-// Description         types.String `tfsdk:"description"`
-// Labels              types.Map    `tfsdk:"labels"`
-// }
 
 type vpcNetworkRangeResource struct {
 	// client                *iaas.APIClient
@@ -132,7 +118,7 @@ func (v *vpcNetworkRangeResource) Schema(_ context.Context, _ resource.SchemaReq
 			},
 			"ipv4": schema.SingleNestedAttribute{
 				Description: "The regional IPv4 config of a network range.",
-				Optional:    true, // XXX: optional as validateConfig checks that at least one of ipv4/ipv6 is present
+				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"default_prefix_length": schema.Int64Attribute{
 						Description: "The default prefix length for networks in the network area.",
@@ -193,19 +179,6 @@ func (v *vpcNetworkRangeResource) Schema(_ context.Context, _ resource.SchemaReq
 					},
 				},
 			},
-			// "ipv6": schema.SingleNestedAttribute{ // XXX: Ipv6 will be available in the future
-			// 	Description: "The regional IPv6 config of a network range.",
-			// 	Optional:    true,
-			// 	Attributes: map[string]schema.Attribute{},
-			// },
-			"created_at": schema.StringAttribute{
-				Description: "Date-time when the network range was created",
-				Computed:    true,
-			},
-			"updated_at": schema.StringAttribute{
-				Description: "Date-time when the network range was updated",
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -217,9 +190,8 @@ func (v *vpcNetworkRangeResource) ValidateConfig(ctx context.Context, req resour
 		return
 	}
 
-	// XXX: Ipv6 will be available in the future
-	if resourceModel.Ipv4 == nil { // && resourceModel.Ipv6 == nil {
-		core.LogAndAddError(ctx, &resp.Diagnostics, "Error configuring VPC Networkrange", "'Ipv4' must be configured.") // "At least one of 'Ipv4' or 'Ipv6' must be configured.")
+	if resourceModel.Ipv4 == nil {
+		core.LogAndAddError(ctx, &resp.Diagnostics, "Error configuring VPC Networkrange", "'Ipv4' must be configured.")
 	}
 }
 

@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	// "github.com/hashicorp/terraform-plugin-framework-nettypes/iptypes"
-
 	// iaas "github.com/stackitcloud/stackit-sdk-go/services/iaas/v2alpha1api"
 	// resourcemanager "github.com/stackitcloud/stackit-sdk-go/services/resourcemanager/v0api"
 
@@ -31,21 +29,13 @@ type Model struct {
 	VpcId     types.String `tfsdk:"vpc_id"`
 
 	DefaultRoutingTable types.String `tfsdk:"default_routing_table"`
-	Status              types.String `tfsdk:"status"` // XXX: status
 	Ipv4                *ipv4Model   `tfsdk:"ipv4"`
-	// Ipv6                *ipv6Model   `tfsdk:"ipv6"` // XXX: Will be available in the future
 }
 
 type ipv4Model struct {
 	DefaultNameservers  types.List   `tfsdk:"default_nameservers"`
 	DefaultNetworkRange types.String `tfsdk:"default_network_range"`
 }
-
-// XXX: Will be available in the future
-// type ipv6Model struct {
-// 	DefaultNameservers  types.List   `tfsdk:"default_nameservers"`
-// 	DefaultNetworkRange types.String `tfsdk:"default_network_range"`
-// }
 
 // NewVpcResource is a helper function to simplify the provider implementation.
 func NewVpcRegionResource() resource.Resource {
@@ -66,7 +56,6 @@ func (r *vpcRegionResource) Metadata(_ context.Context, req resource.MetadataReq
 func (r *vpcRegionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "VPC region configuration resource schema.",
-		// MarkdownDescription: "VPC region configuration resource schema.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Terraform's internal resource identifier. It is structured as \"`project_id`,`vpc_id`,`region`\".",
@@ -99,7 +88,7 @@ func (r *vpcRegionResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			},
 			"region": schema.StringAttribute{
 				Description: "The resource region. If not defined, the provider region is used.",
-				Optional:    true, // XXX: or can/should this be required?
+				Optional:    true,
 				// must be computed to allow for storing the override value from the provider
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
@@ -112,7 +101,6 @@ func (r *vpcRegionResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Attributes: map[string]schema.Attribute{
 					"default_nameservers": schema.ListAttribute{
 						Description: "List of IPv4 DNS Servers/Nameservers.",
-						// ElementType: iptypes.IPv4AddressType{}, // XXX: Is this something to use instead of StringType?
 						ElementType: types.StringType,
 						Required:    true,
 						Validators: []validator.List{
@@ -130,10 +118,6 @@ func (r *vpcRegionResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					},
 				},
 			},
-			// "ipv6": schema.SingleNestedAttribute{  // XXX: Will be available in the future
-			// 	Description: "The regional IPv6 config of a VPC.",
-			// 	Optional:    true,
-			// },
 			"default_routing_table": schema.StringAttribute{
 				Description: "The ID of the default routing table.",
 				Optional:    true,
@@ -142,9 +126,6 @@ func (r *vpcRegionResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					validate.NoSeparator(),
 				},
 			},
-			// "status": schema.StringAttribute{ // XXX: status
-			// 	Description: "The status of the VPC region configuration resource.",
-			// },
 		},
 	}
 }
