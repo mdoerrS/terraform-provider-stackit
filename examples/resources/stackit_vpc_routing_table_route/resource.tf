@@ -1,4 +1,4 @@
-resource "stackit_vpc_route" "example" {
+resource "stackit_vpc_routing_table_route" "example" {
   project_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   vpc_id           = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   region           = "eu01"

@@ -1,4 +1,4 @@
-package vpcroutingtable
+package table
 
 import (
 	"context"
@@ -53,13 +53,35 @@ func (v *vpcRoutingTableResource) Metadata(_ context.Context, req resource.Metad
 // Schema implements resource.Resource.
 func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Routing table resource schema.",
+		Description: "Regional routing table resource schema.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Terraform's internal resource ID. It is structured as \"`project_id`,`vpc_id`,`region`,`routing_table_id`\".",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"project_id": schema.StringAttribute{
+				Description: "STACKIT project ID to which the regional routing table is associated.",
+				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
+				},
+			},
+			"vpc_id": schema.StringAttribute{
+				Description: "The network area ID to which the regional routing table is associated.",
+				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
 				},
 			},
 			"region": schema.StringAttribute{
@@ -71,35 +93,11 @@ func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaReq
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"project_id": schema.StringAttribute{
-				Description: "STACKIT project ID to which the routing table is associated.",
-				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					validate.UUID(),
-					validate.NoSeparator(),
-				},
-			},
-			"vpc_id": schema.StringAttribute{
-				Description: "The network area ID to which the routing table is associated.",
-				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					validate.UUID(),
-					validate.NoSeparator(),
-				},
-			},
 			"routing_table_id": schema.StringAttribute{
-				Description: "The routing tables ID.",
+				Description: "The regional routing tables ID.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					validate.UUID(),
@@ -107,14 +105,14 @@ func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaReq
 				},
 			},
 			"name": schema.StringAttribute{
-				Description: "The name of the routing table.",
+				Description: "The name of the regional routing table.",
 				Required:    true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(127),
 				},
 			},
 			"description": schema.StringAttribute{
-				Description: "Description of the routing table.",
+				Description: "Description of the regional routing table.",
 				Optional:    true,
 				Computed:    true,
 				Validators: []validator.String{
@@ -127,7 +125,7 @@ func (v *vpcRoutingTableResource) Schema(_ context.Context, _ resource.SchemaReq
 				Optional:    true,
 			},
 			"dynamic_routes": schema.BoolAttribute{
-				Description: "This controls whether dynamic routes are propagated to this routing table",
+				Description: "This controls whether dynamic routes are propagated to this regional routing table",
 				Optional:    true,
 				Computed:    true,
 				Default:     booldefault.StaticBool(true),

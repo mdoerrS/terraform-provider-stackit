@@ -64,8 +64,8 @@ import (
 	iaasVPC "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpc"
 	iaasVPCNetworkRange "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcnetworkrange"
 	iaasVPCRegion "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcregion"
-	iaasVPCRoute "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcroute"
-	iaasVPCRoutingTable "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcroutingtable"
+	iaasVPCRoutingTableRoute "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcroutingtable/route"
+	iaasVPCRoutingTable "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcroutingtable/table"
 	iamRoleBindingsV1 "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iam/rolebindings/v1"
 	intakeRunner "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/intake/runner"
 	kmsKey "github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/kms/key"
@@ -772,8 +772,8 @@ func (p *Provider) Resources(_ context.Context) []func() resource.Resource {
 		iaasVPC.NewVpcResource,
 		iaasVPCNetworkRange.NewVpcNetworkRangeResource,
 		iaasVPCRegion.NewVpcRegionResource,
-		iaasVPCRoute.NewVpcRouteResource,
 		iaasVPCRoutingTable.NewVpcRoutingTableResource,
+		iaasVPCRoutingTableRoute.NewVpcRoutingTableRouteResource,
 		iaasNetworkInterface.NewNetworkInterfaceResource,
 		iaasVolume.NewVolumeResource,
 		iaasPublicIp.NewPublicIpResource,

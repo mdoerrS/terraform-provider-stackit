@@ -3,12 +3,12 @@
 page_title: "stackit_vpc_routing_table Resource - stackit"
 subcategory: ""
 description: |-
-  Routing table resource schema.
+  Regional routing table resource schema.
 ---
 
 # stackit_vpc_routing_table (Resource)
 
-Routing table resource schema.
+Regional routing table resource schema.
 
 ## Example Usage
 
@@ -33,14 +33,14 @@ resource "stackit_vpc_routing_table" "example" {
 
 ### Required
 
-- `name` (String) The name of the routing table.
-- `project_id` (String) STACKIT project ID to which the routing table is associated.
-- `vpc_id` (String) The network area ID to which the routing table is associated.
+- `name` (String) The name of the regional routing table.
+- `project_id` (String) STACKIT project ID to which the regional routing table is associated.
+- `vpc_id` (String) The network area ID to which the regional routing table is associated.
 
 ### Optional
 
-- `description` (String) Description of the routing table.
-- `dynamic_routes` (Boolean) This controls whether dynamic routes are propagated to this routing table
+- `description` (String) Description of the regional routing table.
+- `dynamic_routes` (Boolean) This controls whether dynamic routes are propagated to this regional routing table
 - `labels` (Map of String) Labels are key-value string pairs which can be attached to a resource container
 - `region` (String) The resource region. If not defined, the provider region is used.
 - `system_routes` (Boolean) This allows installation of automatic system routes for connectivity between projects in the same VPC.
@@ -48,4 +48,4 @@ resource "stackit_vpc_routing_table" "example" {
 ### Read-Only
 
 - `id` (String) Terraform's internal resource ID. It is structured as "`project_id`,`vpc_id`,`region`,`routing_table_id`".
-- `routing_table_id` (String) The routing tables ID.
+- `routing_table_id` (String) The regional routing tables ID.

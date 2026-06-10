@@ -1,4 +1,4 @@
-package vpcroute
+package route
 
 import (
 	"context"
@@ -14,13 +14,13 @@ import (
 	// iaas "github.com/stackitcloud/stackit-sdk-go/services/iaas/v2alpha1api"
 
 	"github.com/stackitcloud/terraform-provider-stackit/stackit/internal/core"
-	"github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/routingtable/shared"
+	"github.com/stackitcloud/terraform-provider-stackit/stackit/internal/services/iaas/vpcroutingtable/shared"
 	"github.com/stackitcloud/terraform-provider-stackit/stackit/internal/utils"
 	"github.com/stackitcloud/terraform-provider-stackit/stackit/internal/validate"
 )
 
 var (
-	_ resource.Resource = &vpcRouteResource{}
+	_ resource.Resource = &vpcRoutingTableRouteResource{}
 )
 
 type Model struct {
@@ -30,46 +30,29 @@ type Model struct {
 	VpcId          types.String `tfsdk:"vpc_id"`
 	RoutingTableId types.String `tfsdk:"routing_table_id"`
 
-	shared.RouteReadModel // XXX: how to model
-	// RouteId        types.String `tfsdk:"route_id"`
-	// Destination *DestinationModel  `tfsdk:"destination"`
-	// Nexthop     *RouteNexthopModel `tfsdk:"next_hop"`
-	// Labels      types.Map          `tfsdk:"labels"`
-	// CreatedAt   types.String       `tfsdk:"created_at"`
-	// UpdatedAt   types.String       `tfsdk:"updated_at"`
+	*shared.StaticRouteModel // XXX: name of route model
 }
 
-// XXX: how to model
-// type RouteNexthopModel struct {
-// 	Type  types.String `tfsdk:"type"`
-// 	Value types.String `tfsdk:"value"`
-// }
-//
-// type DestinationModel struct {
-// 	Type  types.String `tfsdk:"type"`
-// 	Value types.String `tfsdk:"value"`
-// }
-
-// NewVpcRouteResource is a helper function to simplify the provider implementation.
-func NewVpcRouteResource() resource.Resource {
-	return &vpcRouteResource{}
+// NewVpcRoutingTableRouteResource is a helper function to simplify the provider implementation.
+func NewVpcRoutingTableRouteResource() resource.Resource {
+	return &vpcRoutingTableRouteResource{}
 }
 
-// vpcRouteResource is the resource implementation.
-type vpcRouteResource struct {
+// vpcRoutingTableRouteResource is the resource implementation.
+type vpcRoutingTableRouteResource struct {
 	// client       *iaas.APIClient
 	// providerData core.ProviderData
 }
 
 // Metadata returns the resource type name.
-func (v *vpcRouteResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vpc_route"
+func (v *vpcRoutingTableRouteResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_vpc_routing_table_route"
 }
 
 // Schema implements resource.Resource.
-func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (v *vpcRoutingTableRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "VPC Route resource schema.",
+		Description: "VPC routing table route resource schema.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Description: "Terraform's internal resource ID. It is structured as \"`project_id`,`vpc_id`,`region`,`routing_table_id`,`route_id`\".",
@@ -89,6 +72,17 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					validate.NoSeparator(),
 				},
 			},
+			"vpc_id": schema.StringAttribute{
+				Description: "The VPC ID to which the route is associated.",
+				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
+				},
+			},
 			"region": schema.StringAttribute{
 				Description: "The resource region. If not defined, the provider region is used.",
 				Optional:    true,
@@ -98,11 +92,10 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"vpc_id": schema.StringAttribute{
-				Description: "The VPC ID to which the route is associated.",
+			"routing_table_id": schema.StringAttribute{
+				Description: "The routing table ID of the regional routing table route.",
 				Required:    true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
@@ -111,23 +104,10 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"route_id": schema.StringAttribute{
-				Description: "The ID of the route.",
+				Description: "The ID of the regional routing table route.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
-					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					validate.UUID(),
-					validate.NoSeparator(),
-				},
-			},
-			"routing_table_id": schema.StringAttribute{
-				Description: "The routing table ID of the route.",
-				Required:    true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					validate.UUID(),
@@ -158,7 +138,7 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"destination": schema.SingleNestedAttribute{
-				Description: "Destination of the route.",
+				Description: "Destination of the regional routing table route.",
 				Required:    true,
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
@@ -186,11 +166,11 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Optional:    true,
 			},
 			"created_at": schema.StringAttribute{
-				Description: "Date-time when the route was created.",
+				Description: "Date-time when the regional routing table route was created.",
 				Computed:    true,
 			},
 			"updated_at": schema.StringAttribute{
-				Description: "Date-time when the route was last updated.",
+				Description: "Date-time when the regional routing table route was last updated.",
 				Computed:    true,
 			},
 		},
@@ -198,21 +178,21 @@ func (v *vpcRouteResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (v *vpcRouteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { // nolint:all // function signature required by Terraform
-	core.LogAndAddError(ctx, &resp.Diagnostics, "Error create VPC regional route", "not implemented yet")
+func (v *vpcRoutingTableRouteResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { // nolint:all // function signature required by Terraform
+	core.LogAndAddError(ctx, &resp.Diagnostics, "Error create VPC regional routing table route", "not implemented yet")
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (v *vpcRouteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { // nolint:all // function signature required by Terraform
-	core.LogAndAddError(ctx, &resp.Diagnostics, "Error read VPC regional route", "not implemented yet")
+func (v *vpcRoutingTableRouteResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { // nolint:all // function signature required by Terraform
+	core.LogAndAddError(ctx, &resp.Diagnostics, "Error read VPC regional routing table route", "not implemented yet")
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (v *vpcRouteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { // nolint:all // function signature required by Terraform
-	core.LogAndAddError(ctx, &resp.Diagnostics, "Error update VPC regional route", "not implemented yet")
+func (v *vpcRoutingTableRouteResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { // nolint:all // function signature required by Terraform
+	core.LogAndAddError(ctx, &resp.Diagnostics, "Error update VPC regional routing table route", "not implemented yet")
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (v *vpcRouteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) { // nolint:all // function signature required by Terraform
-	core.LogAndAddError(ctx, &resp.Diagnostics, "Error delete VPC regional route", "not implemented yet")
+func (v *vpcRoutingTableRouteResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) { // nolint:all // function signature required by Terraform
+	core.LogAndAddError(ctx, &resp.Diagnostics, "Error delete VPC regional routing table route", "not implemented yet")
 }
