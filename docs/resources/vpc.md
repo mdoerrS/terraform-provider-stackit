@@ -40,5 +40,4 @@ resource "stackit_vpc" "example_vpc" {
 ### Read-Only
 
 - `id` (String) Terraform's internal resource identifier. It is structured as "`project_id`,`vpc_id`".
-- `shared` (Boolean) Indicates if a VPC can be shared.
 - `vpc_id` (String) The VPC ID.

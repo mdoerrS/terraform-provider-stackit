@@ -31,7 +31,7 @@ type Model struct {
 	Description types.String `tfsdk:"description"`
 	Labels      types.Map    `tfsdk:"labels"`
 	Name        types.String `tfsdk:"name"`
-	Shared      types.Bool   `tfsdk:"shared"`
+	// Shared      types.Bool   `tfsdk:"shared"` // XXX: might still change
 }
 
 // NewVpcResource is a helper function to simplify the provider implementation.
@@ -102,10 +102,10 @@ func (r *vpcResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					stringvalidator.LengthAtMost(127),
 				},
 			},
-			"shared": schema.BoolAttribute{
-				Description: "Indicates if a VPC can be shared.",
-				Computed:    true,
-			},
+			// "shared": schema.BoolAttribute{
+			// 	Description: "Indicates if a VPC can be shared.",
+			// 	Computed:    true,
+			// },
 		},
 	}
 }
