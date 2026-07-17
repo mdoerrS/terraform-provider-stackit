@@ -29,7 +29,10 @@ data "stackit_network" "example" {
 
 ### Optional
 
+- `ipv4_vpc_network_range_id` (String) The ID of the ipv4 VPC network range the network will use.
+- `ipv6_vpc_network_range_id` (String) The ID of the ipv6 VPC network range the network will use.
 - `region` (String) The resource region. If not defined, the provider region is used.
+- `vpc_id` (String) The ID of the VPC the network is associated with.
 
 ### Read-Only
 

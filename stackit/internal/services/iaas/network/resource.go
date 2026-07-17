@@ -52,28 +52,31 @@ const (
 )
 
 type Model struct {
-	Id               types.String `tfsdk:"id"` // needed by TF
-	ProjectId        types.String `tfsdk:"project_id"`
-	NetworkId        types.String `tfsdk:"network_id"`
-	Name             types.String `tfsdk:"name"`
-	IPv4Gateway      types.String `tfsdk:"ipv4_gateway"`
-	IPv4Nameservers  types.List   `tfsdk:"ipv4_nameservers"`
-	IPv4Prefix       types.String `tfsdk:"ipv4_prefix"`
-	IPv4PrefixLength types.Int64  `tfsdk:"ipv4_prefix_length"`
-	IPv4Prefixes     types.List   `tfsdk:"ipv4_prefixes"`
-	IPv6Gateway      types.String `tfsdk:"ipv6_gateway"`
-	IPv6Nameservers  types.List   `tfsdk:"ipv6_nameservers"`
-	IPv6Prefix       types.String `tfsdk:"ipv6_prefix"`
-	IPv6PrefixLength types.Int64  `tfsdk:"ipv6_prefix_length"`
-	IPv6Prefixes     types.List   `tfsdk:"ipv6_prefixes"`
-	PublicIP         types.String `tfsdk:"public_ip"`
-	Labels           types.Map    `tfsdk:"labels"`
-	Routed           types.Bool   `tfsdk:"routed"`
-	NoIPv4Gateway    types.Bool   `tfsdk:"no_ipv4_gateway"`
-	NoIPv6Gateway    types.Bool   `tfsdk:"no_ipv6_gateway"`
-	Region           types.String `tfsdk:"region"`
-	RoutingTableID   types.String `tfsdk:"routing_table_id"`
-	DHCP             types.Bool   `tfsdk:"dhcp"`
+	Id                    types.String `tfsdk:"id"` // needed by TF
+	ProjectId             types.String `tfsdk:"project_id"`
+	NetworkId             types.String `tfsdk:"network_id"`
+	Name                  types.String `tfsdk:"name"`
+	IPv4Gateway           types.String `tfsdk:"ipv4_gateway"`
+	IPv4Nameservers       types.List   `tfsdk:"ipv4_nameservers"`
+	IPv4Prefix            types.String `tfsdk:"ipv4_prefix"`
+	IPv4PrefixLength      types.Int64  `tfsdk:"ipv4_prefix_length"`
+	IPv4Prefixes          types.List   `tfsdk:"ipv4_prefixes"`
+	IPv6Gateway           types.String `tfsdk:"ipv6_gateway"`
+	IPv6Nameservers       types.List   `tfsdk:"ipv6_nameservers"`
+	IPv6Prefix            types.String `tfsdk:"ipv6_prefix"`
+	IPv6PrefixLength      types.Int64  `tfsdk:"ipv6_prefix_length"`
+	IPv6Prefixes          types.List   `tfsdk:"ipv6_prefixes"`
+	PublicIP              types.String `tfsdk:"public_ip"`
+	Labels                types.Map    `tfsdk:"labels"`
+	Routed                types.Bool   `tfsdk:"routed"`
+	NoIPv4Gateway         types.Bool   `tfsdk:"no_ipv4_gateway"`
+	NoIPv6Gateway         types.Bool   `tfsdk:"no_ipv6_gateway"`
+	Region                types.String `tfsdk:"region"`
+	RoutingTableID        types.String `tfsdk:"routing_table_id"`
+	DHCP                  types.Bool   `tfsdk:"dhcp"`
+	VPCID                 types.String `tfsdk:"vpc_id"`
+	IPv4VPCNetworkRangeID types.String `tfsdk:"ipv4_vpc_network_range_id"`
+	IPv6VPCNetworkRangeID types.String `tfsdk:"ipv6_vpc_network_range_id"`
 }
 
 // NewNetworkResource is a helper function to simplify the provider implementation.
@@ -191,7 +194,8 @@ func validateConfig(ctx context.Context, diags *diag.Diagnostics, model *Model) 
 		!model.IPv4PrefixLength.IsNull() ||
 		!model.IPv4Gateway.IsNull() ||
 		!model.NoIPv4Gateway.IsNull() ||
-		!model.IPv4Nameservers.IsNull()
+		!model.IPv4Nameservers.IsNull() ||
+		!model.IPv4VPCNetworkRangeID.IsNull()
 
 	if ipv4IsActive {
 		if model.IPv4Prefix.IsNull() && model.IPv4PrefixLength.IsNull() {
@@ -205,7 +209,8 @@ func validateConfig(ctx context.Context, diags *diag.Diagnostics, model *Model) 
 		!model.IPv6PrefixLength.IsNull() ||
 		!model.IPv6Gateway.IsNull() ||
 		!model.NoIPv6Gateway.IsNull() ||
-		!model.IPv6Nameservers.IsNull()
+		!model.IPv6Nameservers.IsNull() ||
+		!model.IPv6VPCNetworkRangeID.IsNull()
 
 	if ipv6IsActive {
 		if model.IPv6Prefix.IsNull() && model.IPv6PrefixLength.IsNull() {
@@ -404,6 +409,39 @@ func (r *networkResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"vpc_id": schema.StringAttribute{
+				Description: "The ID of the VPC the network is associated with.",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
+				},
+			},
+			"ipv4_vpc_network_range_id": schema.StringAttribute{
+				Description: "The ID of the ipv4 VPC network range the network will use.",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
+				},
+			},
+			"ipv6_vpc_network_range_id": schema.StringAttribute{
+				Description: "The ID of the ipv6 VPC network range the network will use.",
+				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					validate.UUID(),
+					validate.NoSeparator(),
+				},
+			},
 		},
 	}
 }
@@ -422,8 +460,12 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	projectId := model.ProjectId.ValueString()
 	region := r.providerData.GetRegionWithOverride(model.Region)
+	vpcId := model.VPCID.ValueString()
 	ctx = tflog.SetField(ctx, "project_id", projectId)
 	ctx = tflog.SetField(ctx, "region", region)
+	if vpcId != "" {
+		ctx = tflog.SetField(ctx, "vpc_id", vpcId)
+	}
 
 	// Deprecated: Keep this warning until end of September 2026, to make aware of the changed behavior.
 	// When IPv4Nameserver is not set, print warning that the behavior of ipv4_nameservers has changed
@@ -450,11 +492,15 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	networkId := network.Id
 	// Write id attributes to state before polling via the wait handler - just in case anything goes wrong during the wait handler
-	ctx = utils.SetAndLogStateFields(ctx, &resp.Diagnostics, &resp.State, map[string]any{
+	values := map[string]any{
 		"project_id": projectId,
 		"region":     region,
 		"network_id": networkId,
-	})
+	}
+	if vpcId != "" {
+		values["vpc_id"] = vpcId
+	}
+	ctx = utils.SetAndLogStateFields(ctx, &resp.Diagnostics, &resp.State, values)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -492,6 +538,7 @@ func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	ctx = core.InitProviderContext(ctx)
 
 	projectId := model.ProjectId.ValueString()
+	vpcId := model.VPCID.ValueString()
 	networkId := model.NetworkId.ValueString()
 	if networkId == "" {
 		// Resource not yet created; ID is unknown.
@@ -502,6 +549,9 @@ func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	ctx = tflog.SetField(ctx, "project_id", projectId)
 	ctx = tflog.SetField(ctx, "network_id", networkId)
 	ctx = tflog.SetField(ctx, "region", region)
+	if vpcId != "" {
+		ctx = tflog.SetField(ctx, "vpc_id", vpcId)
+	}
 
 	networkResp, err := r.client.DefaultAPI.GetNetwork(ctx, projectId, region, networkId).Execute()
 	if err != nil {
@@ -544,12 +594,15 @@ func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest
 	ctx = core.InitProviderContext(ctx)
 
 	projectId := model.ProjectId.ValueString()
+	vpcId := model.VPCID.ValueString()
 	networkId := model.NetworkId.ValueString()
 	region := r.providerData.GetRegionWithOverride(model.Region)
 	ctx = tflog.SetField(ctx, "project_id", projectId)
 	ctx = tflog.SetField(ctx, "network_id", networkId)
 	ctx = tflog.SetField(ctx, "region", region)
-
+	if vpcId != "" {
+		ctx = tflog.SetField(ctx, "vpc_id", vpcId)
+	}
 	// Retrieve values from state
 	var stateModel Model
 	diags = req.State.Get(ctx, &stateModel)
@@ -603,11 +656,15 @@ func (r *networkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	projectId := model.ProjectId.ValueString()
+	vpcId := model.VPCID.ValueString()
 	networkId := model.NetworkId.ValueString()
 	region := model.Region.ValueString()
 	ctx = tflog.SetField(ctx, "project_id", projectId)
 	ctx = tflog.SetField(ctx, "network_id", networkId)
 	ctx = tflog.SetField(ctx, "region", region)
+	if vpcId != "" {
+		ctx = tflog.SetField(ctx, "vpc_id", vpcId)
+	}
 
 	// Delete existing network
 	err := r.client.DefaultAPI.DeleteNetwork(ctx, projectId, region, networkId).Execute()
@@ -721,6 +778,7 @@ func mapFields(ctx context.Context, networkResp *iaas.Network, model *Model, reg
 		model.IPv4Gateway = types.StringNull()
 	} else {
 		model.IPv4Gateway = types.StringPointerValue(networkResp.Ipv4.Gateway.Get())
+		model.IPv4VPCNetworkRangeID = types.StringPointerValue(networkResp.Ipv4.VpcNetworkRangeId)
 	}
 
 	if networkResp.Ipv4 == nil || networkResp.Ipv4.PublicIp == nil {
@@ -778,6 +836,7 @@ func mapFields(ctx context.Context, networkResp *iaas.Network, model *Model, reg
 		model.IPv6Gateway = types.StringNull()
 	} else {
 		model.IPv6Gateway = types.StringPointerValue(networkResp.Ipv6.Gateway.Get())
+		model.IPv6VPCNetworkRangeID = types.StringPointerValue(networkResp.Ipv6.VpcNetworkRangeId)
 	}
 
 	model.RoutingTableID = types.StringPointerValue(networkResp.RoutingTableId)
@@ -787,7 +846,7 @@ func mapFields(ctx context.Context, networkResp *iaas.Network, model *Model, reg
 	model.Routed = types.BoolPointerValue(networkResp.Routed)
 	model.Region = types.StringValue(region)
 	model.DHCP = types.BoolPointerValue(networkResp.Dhcp)
-
+	model.VPCID = types.StringPointerValue(networkResp.VpcId)
 	return nil
 }
 
@@ -871,6 +930,7 @@ func toCreatePayload(ctx context.Context, model *Model) (*iaas.CreateNetworkPayl
 		if modelIPv4Nameservers != nil {
 			ipv4Body.CreateNetworkIPv4WithPrefixLength.Nameservers = modelIPv4Nameservers
 		}
+		ipv4Body.CreateNetworkIPv4WithPrefixLength.VpcNetworkRangeId = model.IPv4VPCNetworkRangeID.ValueStringPointer()
 	} else if !utils.IsUndefined(model.IPv4Prefix) {
 		var gateway iaas.NullableString
 		if model.NoIPv4Gateway.ValueBool() {
@@ -888,6 +948,7 @@ func toCreatePayload(ctx context.Context, model *Model) (*iaas.CreateNetworkPayl
 		if modelIPv4Nameservers != nil {
 			ipv4Body.CreateNetworkIPv4WithPrefix.Nameservers = modelIPv4Nameservers
 		}
+		ipv4Body.CreateNetworkIPv4WithPrefix.VpcNetworkRangeId = model.IPv4VPCNetworkRangeID.ValueStringPointer()
 	}
 
 	labels, err := conversion.ToStringInterfaceMap(ctx, model.Labels)
@@ -903,6 +964,10 @@ func toCreatePayload(ctx context.Context, model *Model) (*iaas.CreateNetworkPayl
 		Ipv6:           ipv6Body,
 		RoutingTableId: conversion.StringValueToPointer(model.RoutingTableID),
 		Dhcp:           conversion.BoolValueToPointer(model.DHCP),
+	}
+
+	if !utils.IsUndefined(model.VPCID) {
+		payload.VpcId = model.VPCID.ValueStringPointer()
 	}
 
 	return &payload, nil

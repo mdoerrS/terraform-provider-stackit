@@ -38,7 +38,7 @@ We make use of the [Terraform Plugin Framework](https://developer.hashicorp.com/
 
 ### Implementing a new resource
 
-Let's suppose you want to want to implement a new resource `bar` of service `foo`:
+Let's suppose you want to implement a new resource `bar` of service `foo`:
 
 1. You would start by creating a new folder `bar/` inside `stackit/internal/services/foo/`
 2. Following with the creation of a file `resource.go` inside your new folder `stackit/internal/services/foo/bar/`
